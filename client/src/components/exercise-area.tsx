@@ -138,7 +138,7 @@ export default function ExerciseArea({
                 isIncorrect ? "border-red-500 text-red-700" :
                 `border-gray-300 focus:border-${getDifficultyColor()}`
               }`}
-              style={{ width: `${Math.max(blank.length * 0.8, 3)}rem` }}
+              style={{ width: `${Math.max(blank.length * 1.2, 4)}rem` }}
             />
           );
         } else {

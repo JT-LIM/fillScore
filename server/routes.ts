@@ -46,12 +46,17 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
       const isParticle = particles.some(particle => word.endsWith(particle));
       const isShortWord = word.length < 2;
       
-      if (!isParticle && !isShortWord && blankCount < targetBlankCount) {
-        // For advanced level, make almost all non-particle words into blanks
-        // For lower levels, use some randomization
-        const shouldMakeBlank = difficulty === 'advanced' || 
-          (difficulty === 'intermediate' && Math.random() < 0.6) ||
-          (difficulty === 'beginner' && Math.random() < 0.3);
+      if (!isParticle && !isShortWord) {
+        let shouldMakeBlank = false;
+        
+        if (difficulty === 'advanced') {
+          // For advanced, make almost all non-particle words into blanks (95%)
+          shouldMakeBlank = Math.random() < 0.95;
+        } else if (difficulty === 'intermediate' && blankCount < targetBlankCount) {
+          shouldMakeBlank = Math.random() < 0.6;
+        } else if (difficulty === 'beginner' && blankCount < targetBlankCount) {
+          shouldMakeBlank = Math.random() < 0.3;
+        }
         
         if (shouldMakeBlank) {
           blanks.push({
