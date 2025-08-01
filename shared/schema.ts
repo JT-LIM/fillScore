@@ -6,7 +6,8 @@ import { z } from "zod";
 export const exercises = pgTable("exercises", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   originalText: text("original_text").notNull(),
-  difficulty: varchar("difficulty", { length: 20 }).notNull(), // beginner, intermediate, advanced
+  category: varchar("category", { length: 50 }).notNull(), // middle_school_info, high_school_info, ai_basics
+  difficulty: varchar("difficulty", { length: 20 }).notNull().default('advanced'), // only advanced now
   blanks: json("blanks").$type<BlankItem[]>().notNull(),
   answers: json("answers").$type<{ [key: string]: string }>().default({}),
   results: json("results").$type<ExerciseResult[]>().default([]),
@@ -15,7 +16,7 @@ export const exercises = pgTable("exercises", {
 
 export const insertExerciseSchema = createInsertSchema(exercises).pick({
   originalText: true,
-  difficulty: true,
+  category: true,
 });
 
 export type BlankItem = {
@@ -35,7 +36,9 @@ export type ExerciseResult = {
 
 export type GradingMode = 'instant' | 'batch';
 
-export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+export type Difficulty = 'advanced'; // Only advanced difficulty
+
+export type Category = 'middle_school_info' | 'high_school_info' | 'ai_basics';
 
 export type InsertExercise = z.infer<typeof insertExerciseSchema>;
 export type Exercise = typeof exercises.$inferSelect;

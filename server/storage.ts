@@ -21,6 +21,7 @@ export class MemStorage implements IStorage {
     const exercise: Exercise = {
       ...insertExercise,
       id,
+      difficulty: 'advanced', // Always advanced difficulty now
       blanks: [],
       answers: {},
       results: [],

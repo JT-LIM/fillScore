@@ -1,15 +1,33 @@
 import { useState } from "react";
-import { Languages, Settings, UserCircle } from "lucide-react";
-import TextInput from "@/components/text-input";
+import { Languages, Settings, UserCircle, BookOpen, Users, Brain, FileText } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import ExerciseArea from "@/components/exercise-area";
 import ResultsPanel from "@/components/results-panel";
-import { type Exercise, type GradingMode } from "@shared/schema";
+import { type Exercise, type GradingMode, type Category } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+
+type ContentData = {
+  title: string;
+  content: string;
+};
 
 export default function Home() {
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
   const [gradingMode, setGradingMode] = useState<GradingMode>("instant");
   const [showResults, setShowResults] = useState(false);
   const [exerciseResults, setExerciseResults] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [customText, setCustomText] = useState("");
+  const [isCreatingExercise, setIsCreatingExercise] = useState(false);
+
+  // Fetch predefined content
+  const { data: contentData } = useQuery({
+    queryKey: ['/api/content']
+  });
 
   const handleExerciseCreated = (exercise: Exercise) => {
     setCurrentExercise(exercise);
@@ -26,12 +44,13 @@ export default function Home() {
     setCurrentExercise(null);
     setShowResults(false);
     setExerciseResults(null);
+    setSelectedCategory(null);
+    setCustomText("");
   };
 
   const handleRetryExercise = () => {
     setShowResults(false);
     setExerciseResults(null);
-    // Reset answers in the exercise
     if (currentExercise) {
       setCurrentExercise({
         ...currentExercise,
@@ -40,6 +59,58 @@ export default function Home() {
       });
     }
   };
+
+  const createExercise = async (text: string, category: Category) => {
+    setIsCreatingExercise(true);
+    try {
+      const response = await apiRequest('POST', '/api/exercises', {
+        originalText: text,
+        category: category
+      });
+      
+      const exercise = await response.json() as Exercise;
+      handleExerciseCreated(exercise);
+    } catch (error) {
+      console.error('Failed to create exercise:', error);
+    } finally {
+      setIsCreatingExercise(false);
+    }
+  };
+
+  const handleCategorySelect = (category: Category) => {
+    if (!contentData) return;
+    setSelectedCategory(category);
+    createExercise(contentData[category].content, category);
+  };
+
+  const handleCustomTextSubmit = () => {
+    if (!customText.trim() || !selectedCategory) return;
+    createExercise(customText, selectedCategory);
+  };
+
+  const categories = [
+    {
+      id: 'middle_school_info' as Category,
+      title: '중학교정보',
+      description: '성취기준',
+      icon: BookOpen,
+      color: 'bg-blue-500'
+    },
+    {
+      id: 'high_school_info' as Category,
+      title: '고등학교정보',
+      description: '성취기준',
+      icon: Users,
+      color: 'bg-green-500'
+    },
+    {
+      id: 'ai_basics' as Category,
+      title: '인공지능기초',
+      description: '성취기준',
+      icon: Brain,
+      color: 'bg-purple-500'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 font-korean">
@@ -67,7 +138,96 @@ export default function Home() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <TextInput onExerciseCreated={handleExerciseCreated} />
+        {!currentExercise && (
+          <div className="space-y-8">
+            {/* Category Selection */}
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">학습 카테고리 선택</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {categories.map((category) => {
+                  const Icon = category.icon;
+                  return (
+                    <Card key={category.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-12 h-12 ${category.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="text-white text-xl" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{category.title}</CardTitle>
+                            <CardDescription>{category.description}</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Button 
+                          onClick={() => handleCategorySelect(category.id)}
+                          disabled={isCreatingExercise}
+                          className="w-full"
+                        >
+                          {isCreatingExercise ? '문제 생성 중...' : '학습 시작'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Custom Text Input */}
+            <section>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                      <FileText className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">직접 입력</CardTitle>
+                      <CardDescription>자신만의 텍스트로 연습하기</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="custom-text">텍스트 입력</Label>
+                    <Textarea
+                      id="custom-text"
+                      value={customText}
+                      onChange={(e) => setCustomText(e.target.value)}
+                      placeholder="학습하고 싶은 텍스트를 입력하세요..."
+                      className="min-h-32 mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>카테고리 선택</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {categories.map((category) => (
+                        <Button
+                          key={category.id}
+                          variant={selectedCategory === category.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedCategory(category.id)}
+                        >
+                          {category.title}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleCustomTextSubmit}
+                    disabled={!customText.trim() || !selectedCategory || isCreatingExercise}
+                    className="w-full"
+                  >
+                    {isCreatingExercise ? '문제 생성 중...' : '연습 시작'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </section>
+          </div>
+        )}
         
         {currentExercise && !showResults && (
           <ExerciseArea 
@@ -87,50 +247,6 @@ export default function Home() {
           />
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">사용법</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• 한국어 지문을 입력하세요</li>
-                <li>• 난이도를 선택하세요</li>
-                <li>• 빈칸을 채우며 학습하세요</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">난이도 안내</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <div className="w-3 h-3 bg-beginner rounded-full mr-2"></div>
-                  초급: 기본 단어 20%
-                </li>
-                <li className="flex items-center">
-                  <div className="w-3 h-3 bg-intermediate rounded-full mr-2"></div>
-                  중급: 핵심 단어 50%
-                </li>
-                <li className="flex items-center">
-                  <div className="w-3 h-3 bg-advanced rounded-full mr-2"></div>
-                  고급: 대부분 단어 95%
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">학습 팁</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• 바로 채점으로 즉시 피드백</li>
-                <li>• 오답 노트로 약점 파악</li>
-                <li>• 반복 학습으로 실력 향상</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 mt-8 pt-6 text-center text-sm text-gray-500">
-            © 2024 한국어 빈칸 학습 사이트. 모든 권리 보유.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

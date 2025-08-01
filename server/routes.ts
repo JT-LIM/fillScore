@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertExerciseSchema, type Difficulty, type BlankItem, type ExerciseResult } from "@shared/schema";
+import { insertExerciseSchema, type Difficulty, type Category, type BlankItem, type ExerciseResult } from "@shared/schema";
+import { educationalContent } from "./content";
 import { z } from "zod";
 
 // Simple Korean morphological analysis
@@ -57,11 +58,9 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
         
         if (difficulty === 'advanced') {
           // For advanced, make almost all non-particle words into blanks (95%)
-          shouldMakeBlank = Math.random() < 0.95;
-        } else if (difficulty === 'intermediate' && blankCount < targetBlankCount) {
-          shouldMakeBlank = Math.random() < 0.6;
-        } else if (difficulty === 'beginner' && blankCount < targetBlankCount) {
-          shouldMakeBlank = Math.random() < 0.3;
+          // Add randomness to ensure different blanks each time
+          const randomSeed = Math.random() + Date.now() * 0.000001; // Use time for different results
+          shouldMakeBlank = (randomSeed % 1) < 0.95;
         }
         
         if (shouldMakeBlank) {
@@ -108,15 +107,32 @@ function gradeExercise(blanks: BlankItem[], answers: { [key: string]: string }):
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get predefined educational content
+  app.get("/api/content", (req, res) => {
+    res.json(educationalContent);
+  });
+  
+  // Get specific category content
+  app.get("/api/content/:category", (req, res) => {
+    const category = req.params.category as keyof typeof educationalContent;
+    const content = educationalContent[category];
+    
+    if (!content) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    
+    res.json(content);
+  });
+
   // Create exercise with blanks
   app.post("/api/exercises", async (req, res) => {
     try {
-      const { originalText, difficulty } = insertExerciseSchema.parse(req.body);
+      const { originalText, category } = insertExerciseSchema.parse(req.body);
       
-      let exercise = await storage.createExercise({ originalText, difficulty });
+      let exercise = await storage.createExercise({ originalText, category });
       
-      // Generate blanks based on difficulty
-      const blanks = analyzeKoreanText(originalText, difficulty as Difficulty);
+      // Generate blanks based on advanced difficulty (always advanced now)
+      const blanks = analyzeKoreanText(originalText, 'advanced');
       
       // Update the exercise with the generated blanks in storage
       exercise = await storage.updateExerciseBlanks(exercise.id, blanks) || exercise;
