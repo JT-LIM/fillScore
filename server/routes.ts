@@ -79,9 +79,12 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
       globalWordIndex++;
     });
     
-    // Don't add extra position for the last line
+    // Account for newline character at end of line (except the last line)
     if (lineIndex < lines.length - 1) {
-      currentPosition -= 1; // Remove the last space and account for newline instead
+      currentPosition -= 1; // Remove the last space
+      currentPosition += 1; // Add newline character instead
+    } else {
+      currentPosition -= 1; // Remove the trailing space from the last line
     }
   });
   
@@ -94,21 +97,12 @@ function gradeExercise(blanks: BlankItem[], answers: { [key: string]: string }):
     const correctAnswer = blank.word;
     const isCorrect = userAnswer === correctAnswer;
     
-    let feedback = '';
-    if (!isCorrect && userAnswer) {
-      if (userAnswer.includes(correctAnswer.slice(0, -1))) {
-        feedback = '조사 구분 주의';
-      } else {
-        feedback = '다시 한번 확인해보세요';
-      }
-    }
-    
     return {
       blankId: blank.id,
       userAnswer,
       correctAnswer,
       isCorrect,
-      feedback: isCorrect ? undefined : feedback
+      feedback: undefined
     };
   });
 }
