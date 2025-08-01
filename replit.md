@@ -1,8 +1,8 @@
-# Korean Fill-in-the-Blank Exercise Generator
+# 교육과정 빈칸 인출 (Curriculum Blank Extraction)
 
 ## Overview
 
-This is a full-stack web application designed to help Korean language learners practice their skills through interactive fill-in-the-blank exercises. The application automatically analyzes Korean text and creates blanks based on morphological patterns and difficulty levels, providing instant feedback and detailed scoring to enhance the learning experience.
+This is a full-stack web application designed to help students practice with Korean educational curriculum content through interactive fill-in-the-blank exercises. The application automatically analyzes Korean educational text and creates blanks based on morphological patterns and difficulty levels, providing instant feedback and detailed scoring to enhance the learning experience with curriculum-based content.
 
 ## User Preferences
 

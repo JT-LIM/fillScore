@@ -122,7 +122,7 @@ export default function Home() {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <Languages className="text-white text-xl" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">한국어 빈칸 학습</h1>
+              <h1 className="text-2xl font-bold text-gray-900">교육과정 빈칸 인출</h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
