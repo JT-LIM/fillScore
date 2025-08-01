@@ -15,7 +15,7 @@ interface TextInputProps {
 
 export default function TextInput({ onExerciseCreated }: TextInputProps) {
   const [inputText, setInputText] = useState("");
-  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("beginner");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("advanced");
   const { toast } = useToast();
 
   const createExerciseMutation = useMutation({
@@ -57,8 +57,6 @@ export default function TextInput({ onExerciseCreated }: TextInputProps) {
 
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
-      case "beginner": return "text-beginner";
-      case "intermediate": return "text-intermediate";
       case "advanced": return "text-advanced";
       default: return "text-gray-600";
     }
@@ -66,8 +64,6 @@ export default function TextInput({ onExerciseCreated }: TextInputProps) {
 
   const getDifficultyText = (difficulty: Difficulty) => {
     switch (difficulty) {
-      case "beginner": return "초급 (20% 빈칸)";
-      case "intermediate": return "중급 (50% 빈칸)";
       case "advanced": return "고급 (95% 빈칸)";
       default: return "";
     }
@@ -85,12 +81,6 @@ export default function TextInput({ onExerciseCreated }: TextInputProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="beginner" className={getDifficultyColor("beginner")}>
-                  {getDifficultyText("beginner")}
-                </SelectItem>
-                <SelectItem value="intermediate" className={getDifficultyColor("intermediate")}>
-                  {getDifficultyText("intermediate")}
-                </SelectItem>
                 <SelectItem value="advanced" className={getDifficultyColor("advanced")}>
                   {getDifficultyText("advanced")}
                 </SelectItem>

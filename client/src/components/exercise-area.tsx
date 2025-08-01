@@ -93,10 +93,15 @@ export default function ExerciseArea({
   const handleKeyDown = (blankId: string, e: React.KeyboardEvent) => {
     if (e.code === 'Space' && e.target instanceof HTMLInputElement) {
       const currentValue = e.target.value;
-      // Only navigate if there's some content or if we're at the end of input
-      if (currentValue.trim() || e.target.selectionStart === currentValue.length) {
+      // For Korean input, check if composition is active
+      const isComposing = e.nativeEvent && (e.nativeEvent as any).isComposing;
+      
+      // Only navigate if there's content AND we're not in the middle of Korean composition
+      if (currentValue.trim() && !isComposing) {
         e.preventDefault();
-        focusNextBlank(blankId);
+        // Set the final value before navigation to prevent character moving
+        handleAnswerChange(blankId, currentValue);
+        setTimeout(() => focusNextBlank(blankId), 0);
       }
     }
   };
@@ -172,9 +177,9 @@ export default function ExerciseArea({
                   `border-gray-300 focus:border-${getDifficultyColor()}`
                 }`}
                 style={{ 
-                  width: `${Math.max(blank.length * 0.9 + 1, 2.5)}rem`,
-                  minWidth: '2.5rem',
-                  maxWidth: '12rem'
+                  width: `${Math.max(blank.length * 1.2 + 2, 3)}rem`,
+                  minWidth: '3rem',
+                  maxWidth: '15rem'
                 }}
               />
               {punctuation && <span className="text-lg">{punctuation}</span>}
