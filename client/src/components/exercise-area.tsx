@@ -101,69 +101,51 @@ export default function ExerciseArea({
 
   // Generate text with blanks
   const generateTextWithBlanks = () => {
-    // Split by lines first, then process each line
-    const lines = exercise.originalText.split(/\n/);
-    const elements: JSX.Element[] = [];
+    const words = exercise.originalText.split(/\s+/);
     let currentPosition = 0;
+    const elements: JSX.Element[] = [];
     let wordIndex = 0;
 
-    lines.forEach((line, lineIndex) => {
-      if (line.trim() === '') {
-        // Empty line - add line break
-        elements.push(<br key={`br-${lineIndex}`} />);
-        currentPosition += 1; // Account for newline character
-        return;
-      }
-
-      const words = line.split(/\s+/);
+    for (const word of words) {
+      const blank = exercise.blanks.find(b => b.position === currentPosition);
       
-      words.forEach((word, wordInLineIndex) => {
-        const blank = exercise.blanks.find(b => b.position === currentPosition);
-        
-        if (blank) {
-          const result = instantResults[blank.id];
-          const hasResult = gradingMode === "instant" && result;
-          const isCorrect = hasResult && result.isCorrect;
-          const isIncorrect = hasResult && !result.isCorrect;
+      if (blank) {
+        const result = instantResults[blank.id];
+        const hasResult = gradingMode === "instant" && result;
+        const isCorrect = hasResult && result.isCorrect;
+        const isIncorrect = hasResult && !result.isCorrect;
 
-          elements.push(
-            <input
-              key={blank.id}
-              type="text"
-              value={answers[blank.id] || ""}
-              onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
-              onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
-              placeholder="_____"
-              className={`inline-block px-2 py-1 text-center bg-gray-100 border-2 rounded focus:outline-none focus:ring-2 transition-colors ${
-                isCorrect ? "border-green-500 text-green-700 bg-green-50 focus:ring-green-200" :
-                isIncorrect ? "border-red-500 text-red-700 bg-red-50 focus:ring-red-200" :
-                `border-gray-300 focus:border-${getDifficultyColor()} focus:ring-blue-200`
-              }`}
-              style={{ minWidth: '60px', width: `${Math.max(blank.length * 0.8, 4)}rem` }}
-            />
-          );
-        } else {
-          elements.push(
-            <span key={`word-${wordIndex}`} className="text-lg">
-              {word}
-            </span>
-          );
-        }
-        
-        // Add space between words (but not at end of line)
-        if (wordInLineIndex < words.length - 1) {
-          elements.push(<span key={`space-${wordIndex}`}> </span>);
-        }
-        
-        currentPosition += word.length + 1; // +1 for space
-        wordIndex++;
-      });
-
-      // Add line break at end of line (except for last line)
-      if (lineIndex < lines.length - 1) {
-        elements.push(<br key={`line-break-${lineIndex}`} />);
+        elements.push(
+          <input
+            key={blank.id}
+            type="text"
+            value={answers[blank.id] || ""}
+            onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
+            onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
+            placeholder="____"
+            className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
+              isCorrect ? "border-green-500 text-green-700" :
+              isIncorrect ? "border-red-500 text-red-700" :
+              `border-gray-300 focus:border-${getDifficultyColor()}`
+            }`}
+            style={{ width: `${Math.max(blank.length * 0.8, 3)}rem` }}
+          />
+        );
+      } else {
+        elements.push(
+          <span key={`word-${wordIndex}`} className="text-lg">
+            {word}
+          </span>
+        );
       }
-    });
+      
+      if (wordIndex < words.length - 1) {
+        elements.push(<span key={`space-${wordIndex}`}> </span>);
+      }
+      
+      currentPosition += word.length + 1;
+      wordIndex++;
+    }
 
     return elements;
   };
@@ -215,7 +197,7 @@ export default function ExerciseArea({
 
         {/* Exercise Content */}
         <div className="p-4 bg-gray-50 rounded-lg mb-6">
-          <div className="text-lg leading-relaxed" style={{ lineHeight: '2.5' }}>
+          <div className="text-lg leading-relaxed space-x-1">
             {generateTextWithBlanks()}
           </div>
           
