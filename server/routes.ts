@@ -8,7 +8,7 @@ import { z } from "zod";
 // Simple Korean morphological analysis
 function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
   // Korean particles (조사) that should not be made into blanks
-  const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '으로', '로', '와', '과', '의', '도', '만', '까지', '부터', '에게', '한테'];
+  const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '으로', '로', '와', '과', '의', '도', '만', '까지', '부터', '에게', '한테', '데'];
   
   // Split text by lines first to handle line breaks properly
   const lines = text.split('\n');
