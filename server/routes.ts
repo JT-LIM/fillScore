@@ -42,11 +42,12 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
     words.forEach((word, wordIndex) => {
       const position = currentPosition;
       
-      // Skip particles and very short words
+      // Skip particles, very short words, and words with special characters
       const isParticle = particles.some(particle => word.endsWith(particle));
       const isShortWord = word.length < 2;
+      const hasSpecialChars = /[^\u3131-\u3163\uac00-\ud7a3a-zA-Z]/.test(word); // Only allow Korean and English characters
       
-      if (!isParticle && !isShortWord) {
+      if (!isParticle && !isShortWord && !hasSpecialChars) {
         let shouldMakeBlank = false;
         
         if (difficulty === 'advanced') {
@@ -90,9 +91,7 @@ function gradeExercise(blanks: BlankItem[], answers: { [key: string]: string }):
     
     let feedback = '';
     if (!isCorrect && userAnswer) {
-      if (userAnswer.length !== correctAnswer.length) {
-        feedback = '단어 길이를 확인해보세요';
-      } else if (userAnswer.includes(correctAnswer.slice(0, -1))) {
+      if (userAnswer.includes(correctAnswer.slice(0, -1))) {
         feedback = '조사 구분 주의';
       } else {
         feedback = '다시 한번 확인해보세요';
