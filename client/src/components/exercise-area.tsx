@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle, Lightbulb, RotateCcw } from "lucide-react";
+import { CheckCircle, Lightbulb, RotateCcw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +14,7 @@ interface ExerciseAreaProps {
   onGradingModeChange: (mode: GradingMode) => void;
   onResultsReady: (results: any) => void;
   onRetry: () => void;
+  onBackToMain: () => void;
 }
 
 export default function ExerciseArea({ 
@@ -21,7 +22,8 @@ export default function ExerciseArea({
   gradingMode, 
   onGradingModeChange, 
   onResultsReady,
-  onRetry 
+  onRetry,
+  onBackToMain
 }: ExerciseAreaProps) {
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [instantResults, setInstantResults] = useState<{ [key: string]: ExerciseResult }>({});
@@ -226,23 +228,35 @@ export default function ExerciseArea({
             </div>
           </div>
           
-          {/* Grading Mode Toggle */}
-          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center space-x-3">
+            {/* Grading Mode Toggle */}
+            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+              <Button
+                variant={gradingMode === "instant" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onGradingModeChange("instant")}
+                className="text-sm"
+              >
+                바로 채점
+              </Button>
+              <Button
+                variant={gradingMode === "batch" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onGradingModeChange("batch")}
+                className="text-sm"
+              >
+                한번에 채점
+              </Button>
+            </div>
+            
+            {/* Back to Main Button */}
             <Button
-              variant={gradingMode === "instant" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onGradingModeChange("instant")}
-              className="text-sm"
+              variant="outline"
+              onClick={onBackToMain}
+              className="flex items-center space-x-2"
             >
-              바로 채점
-            </Button>
-            <Button
-              variant={gradingMode === "batch" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onGradingModeChange("batch")}
-              className="text-sm"
-            >
-              한번에 채점
+              <Home className="w-4 h-4" />
+              <span>메인으로</span>
             </Button>
           </div>
         </div>

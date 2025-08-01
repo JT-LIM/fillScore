@@ -64,6 +64,14 @@ export default function Home() {
     setCustomText("");
   };
 
+  const handleBackToMain = () => {
+    setCurrentExercise(null);
+    setShowResults(false);
+    setExerciseResults(null);
+    setSelectedCategory(null);
+    setCustomText("");
+  };
+
   const handleRetryExercise = () => {
     setShowResults(false);
     setExerciseResults(null);
@@ -304,6 +312,7 @@ export default function Home() {
             onGradingModeChange={setGradingMode}
             onResultsReady={handleResultsReady}
             onRetry={handleRetryExercise}
+            onBackToMain={handleBackToMain}
           />
         )}
 
