@@ -42,12 +42,17 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
     words.forEach((word, wordIndex) => {
       const position = currentPosition;
       
-      // Skip particles, very short words, and words with special characters
-      const isParticle = particles.some(particle => word.endsWith(particle));
-      const isShortWord = word.length < 2;
-      const hasSpecialChars = /[^\u3131-\u3163\uac00-\ud7a3a-zA-Z]/.test(word); // Only allow Korean and English characters
+      // Remove punctuation from the end to get the core word
+      const cleanWord = word.replace(/[.,!?;:'"()[\]{}\-–—\/\\]+$/g, '');
       
-      if (!isParticle && !isShortWord && !hasSpecialChars) {
+      // Skip very short words and words with special characters in the middle
+      const isShortWord = cleanWord.length < 2;
+      const hasSpecialCharsInMiddle = /[^\u3131-\u3163\uac00-\ud7a3a-zA-Z]/.test(cleanWord); // Only allow Korean and English characters
+      
+      // Skip standalone particles only (not words that contain particles)
+      const isStandaloneParticle = particles.includes(cleanWord);
+      
+      if (!isStandaloneParticle && !isShortWord && !hasSpecialCharsInMiddle && cleanWord.length > 0) {
         let shouldMakeBlank = false;
         
         if (difficulty === 'advanced') {
@@ -63,8 +68,8 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
           blanks.push({
             id: `blank_${globalWordIndex}`,
             position,
-            word,
-            length: word.length
+            word: cleanWord, // Store the clean word without punctuation
+            length: cleanWord.length
           });
           blankCount++;
         }
@@ -114,11 +119,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { originalText, difficulty } = insertExerciseSchema.parse(req.body);
       
-      const exercise = await storage.createExercise({ originalText, difficulty });
+      let exercise = await storage.createExercise({ originalText, difficulty });
       
       // Generate blanks based on difficulty
       const blanks = analyzeKoreanText(originalText, difficulty as Difficulty);
-      exercise.blanks = blanks;
+      
+      // Update the exercise with the generated blanks in storage
+      exercise = await storage.updateExerciseBlanks(exercise.id, blanks) || exercise;
       
       res.json(exercise);
     } catch (error) {

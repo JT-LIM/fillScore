@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 export interface IStorage {
   createExercise(exercise: InsertExercise): Promise<Exercise>;
   getExercise(id: string): Promise<Exercise | undefined>;
+  updateExerciseBlanks(id: string, blanks: BlankItem[]): Promise<Exercise | undefined>;
   updateExerciseAnswers(id: string, answers: { [key: string]: string }): Promise<Exercise | undefined>;
   updateExerciseResults(id: string, results: ExerciseResult[]): Promise<Exercise | undefined>;
 }
@@ -31,6 +32,15 @@ export class MemStorage implements IStorage {
 
   async getExercise(id: string): Promise<Exercise | undefined> {
     return this.exercises.get(id);
+  }
+
+  async updateExerciseBlanks(id: string, blanks: BlankItem[]): Promise<Exercise | undefined> {
+    const exercise = this.exercises.get(id);
+    if (!exercise) return undefined;
+
+    const updatedExercise = { ...exercise, blanks };
+    this.exercises.set(id, updatedExercise);
+    return updatedExercise;
   }
 
   async updateExerciseAnswers(id: string, answers: { [key: string]: string }): Promise<Exercise | undefined> {

@@ -126,20 +126,27 @@ export default function ExerciseArea({
           const isCorrect = hasResult && result.isCorrect;
           const isIncorrect = hasResult && !result.isCorrect;
 
+          // Split word into clean part and punctuation
+          const cleanWord = word.replace(/[.,!?;:'"()[\]{}\-–—\/\\]+$/g, '');
+          const punctuation = word.slice(cleanWord.length);
+
           elements.push(
-            <input
-              key={blank.id}
-              type="text"
-              value={answers[blank.id] || ""}
-              onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
-              onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
-              className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
-                isCorrect ? "border-green-500 text-green-700" :
-                isIncorrect ? "border-red-500 text-red-700" :
-                `border-gray-300 focus:border-${getDifficultyColor()}`
-              }`}
-              style={{ width: `${Math.max(blank.length * 1.2, 4)}rem` }}
-            />
+            <span key={`blank-wrapper-${globalWordIndex}`}>
+              <input
+                key={blank.id}
+                type="text"
+                value={answers[blank.id] || ""}
+                onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
+                onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
+                className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
+                  isCorrect ? "border-green-500 text-green-700" :
+                  isIncorrect ? "border-red-500 text-red-700" :
+                  `border-gray-300 focus:border-${getDifficultyColor()}`
+                }`}
+                style={{ width: `${Math.max(blank.length * 1.2, 4)}rem` }}
+              />
+              {punctuation && <span className="text-lg">{punctuation}</span>}
+            </span>
           );
         } else {
           elements.push(
