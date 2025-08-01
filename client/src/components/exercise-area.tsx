@@ -101,51 +101,69 @@ export default function ExerciseArea({
 
   // Generate text with blanks
   const generateTextWithBlanks = () => {
-    const words = exercise.originalText.split(/\s+/);
-    let currentPosition = 0;
+    // Split text by lines first to preserve line breaks
+    const lines = exercise.originalText.split('\n');
     const elements: JSX.Element[] = [];
-    let wordIndex = 0;
+    let currentPosition = 0;
+    let globalWordIndex = 0;
 
-    for (const word of words) {
-      const blank = exercise.blanks.find(b => b.position === currentPosition);
-      
-      if (blank) {
-        const result = instantResults[blank.id];
-        const hasResult = gradingMode === "instant" && result;
-        const isCorrect = hasResult && result.isCorrect;
-        const isIncorrect = hasResult && !result.isCorrect;
+    lines.forEach((line, lineIndex) => {
+      if (line.trim() === '') {
+        // Empty line - add a line break
+        elements.push(<br key={`br-${lineIndex}`} />);
+        currentPosition += 1; // Account for the newline character
+        return;
+      }
 
-        elements.push(
-          <input
-            key={blank.id}
-            type="text"
-            value={answers[blank.id] || ""}
-            onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
-            onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
-            placeholder="____"
-            className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
-              isCorrect ? "border-green-500 text-green-700" :
-              isIncorrect ? "border-red-500 text-red-700" :
-              `border-gray-300 focus:border-${getDifficultyColor()}`
-            }`}
-            style={{ width: `${Math.max(blank.length * 0.8, 3)}rem` }}
-          />
-        );
-      } else {
-        elements.push(
-          <span key={`word-${wordIndex}`} className="text-lg">
-            {word}
-          </span>
-        );
-      }
+      const words = line.split(/\s+/).filter(word => word.length > 0);
       
-      if (wordIndex < words.length - 1) {
-        elements.push(<span key={`space-${wordIndex}`}> </span>);
+      words.forEach((word, wordIndex) => {
+        const blank = exercise.blanks.find(b => b.position === currentPosition);
+        
+        if (blank) {
+          const result = instantResults[blank.id];
+          const hasResult = gradingMode === "instant" && result;
+          const isCorrect = hasResult && result.isCorrect;
+          const isIncorrect = hasResult && !result.isCorrect;
+
+          elements.push(
+            <input
+              key={blank.id}
+              type="text"
+              value={answers[blank.id] || ""}
+              onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
+              onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
+              placeholder="____"
+              className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
+                isCorrect ? "border-green-500 text-green-700" :
+                isIncorrect ? "border-red-500 text-red-700" :
+                `border-gray-300 focus:border-${getDifficultyColor()}`
+              }`}
+              style={{ width: `${Math.max(blank.length * 0.8, 3)}rem` }}
+            />
+          );
+        } else {
+          elements.push(
+            <span key={`word-${globalWordIndex}`} className="text-lg">
+              {word}
+            </span>
+          );
+        }
+        
+        // Add space after word (except for last word in line)
+        if (wordIndex < words.length - 1) {
+          elements.push(<span key={`space-${globalWordIndex}`}> </span>);
+        }
+        
+        currentPosition += word.length + 1; // +1 for space
+        globalWordIndex++;
+      });
+
+      // Add line break after each line (except the last one)
+      if (lineIndex < lines.length - 1) {
+        elements.push(<br key={`line-br-${lineIndex}`} />);
       }
-      
-      currentPosition += word.length + 1;
-      wordIndex++;
-    }
+    });
 
     return elements;
   };

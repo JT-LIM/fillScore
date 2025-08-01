@@ -9,10 +9,11 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
   // Korean particles (조사) that should not be made into blanks
   const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '으로', '로', '와', '과', '의', '도', '만', '까지', '부터', '에게', '한테'];
   
-  // Split text into words and track positions
-  const words = text.split(/\s+/);
+  // Split text by lines first to handle line breaks properly
+  const lines = text.split('\n');
   const blanks: BlankItem[] = [];
   let currentPosition = 0;
+  let globalWordIndex = 0;
   
   // Determine blank percentage based on difficulty
   const blankPercentages = {
@@ -21,37 +22,57 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
     advanced: 0.95
   };
   
-  const targetBlankCount = Math.floor(words.length * blankPercentages[difficulty]);
+  // Count total words across all lines
+  const totalWords = lines.reduce((count, line) => {
+    return count + line.split(/\s+/).filter(word => word.trim().length > 0).length;
+  }, 0);
+  
+  const targetBlankCount = Math.floor(totalWords * blankPercentages[difficulty]);
   let blankCount = 0;
   
-  for (let i = 0; i < words.length && blankCount < targetBlankCount; i++) {
-    const word = words[i];
-    const position = currentPosition;
-    
-    // Skip particles and very short words
-    const isParticle = particles.some(particle => word.endsWith(particle));
-    const isShortWord = word.length < 2;
-    
-    if (!isParticle && !isShortWord) {
-      // For advanced level, make almost all non-particle words into blanks
-      // For lower levels, use some randomization
-      const shouldMakeBlank = difficulty === 'advanced' || 
-        (difficulty === 'intermediate' && Math.random() < 0.6) ||
-        (difficulty === 'beginner' && Math.random() < 0.3);
-      
-      if (shouldMakeBlank) {
-        blanks.push({
-          id: `blank_${i}`,
-          position,
-          word,
-          length: word.length
-        });
-        blankCount++;
-      }
+  lines.forEach((line, lineIndex) => {
+    if (line.trim() === '') {
+      // Empty line - just account for the newline character
+      currentPosition += 1;
+      return;
     }
     
-    currentPosition += word.length + 1; // +1 for space
-  }
+    const words = line.split(/\s+/).filter(word => word.trim().length > 0);
+    
+    words.forEach((word, wordIndex) => {
+      const position = currentPosition;
+      
+      // Skip particles and very short words
+      const isParticle = particles.some(particle => word.endsWith(particle));
+      const isShortWord = word.length < 2;
+      
+      if (!isParticle && !isShortWord && blankCount < targetBlankCount) {
+        // For advanced level, make almost all non-particle words into blanks
+        // For lower levels, use some randomization
+        const shouldMakeBlank = difficulty === 'advanced' || 
+          (difficulty === 'intermediate' && Math.random() < 0.6) ||
+          (difficulty === 'beginner' && Math.random() < 0.3);
+        
+        if (shouldMakeBlank) {
+          blanks.push({
+            id: `blank_${globalWordIndex}`,
+            position,
+            word,
+            length: word.length
+          });
+          blankCount++;
+        }
+      }
+      
+      currentPosition += word.length + 1; // +1 for space
+      globalWordIndex++;
+    });
+    
+    // Don't add extra position for the last line
+    if (lineIndex < lines.length - 1) {
+      currentPosition -= 1; // Remove the last space and account for newline instead
+    }
+  });
   
   return blanks;
 }
