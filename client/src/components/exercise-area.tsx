@@ -133,7 +133,6 @@ export default function ExerciseArea({
               value={answers[blank.id] || ""}
               onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
               onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
-              placeholder="____"
               className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
                 isCorrect ? "border-green-500 text-green-700" :
                 isIncorrect ? "border-red-500 text-red-700" :
