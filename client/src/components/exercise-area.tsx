@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Lightbulb, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function ExerciseArea({
 }: ExerciseAreaProps) {
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [instantResults, setInstantResults] = useState<{ [key: string]: ExerciseResult }>({});
+  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const { toast } = useToast();
 
   const getDifficultyColor = () => {
@@ -89,6 +90,30 @@ export default function ExerciseArea({
     }
   };
 
+  const handleKeyDown = (blankId: string, e: React.KeyboardEvent) => {
+    if (e.code === 'Space' && e.target instanceof HTMLInputElement) {
+      const currentValue = e.target.value;
+      // Only navigate if there's some content or if we're at the end of input
+      if (currentValue.trim() || e.target.selectionStart === currentValue.length) {
+        e.preventDefault();
+        focusNextBlank(blankId);
+      }
+    }
+  };
+
+  const focusNextBlank = (currentBlankId: string) => {
+    // Sort blanks by their position in the text, not by ID
+    const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
+    const blankIds = sortedBlanks.map(b => b.id);
+    const currentIndex = blankIds.indexOf(currentBlankId);
+    const nextIndex = (currentIndex + 1) % blankIds.length;
+    const nextBlankId = blankIds[nextIndex];
+    
+    if (inputRefs.current[nextBlankId]) {
+      inputRefs.current[nextBlankId]?.focus();
+    }
+  };
+
   const handleBatchGrade = () => {
     batchGradeMutation.mutate(answers);
   };
@@ -96,6 +121,7 @@ export default function ExerciseArea({
   const handleReset = () => {
     setAnswers({});
     setInstantResults({});
+    inputRefs.current = {};
     onRetry();
   };
 
@@ -134,16 +160,22 @@ export default function ExerciseArea({
             <span key={`blank-wrapper-${globalWordIndex}`}>
               <input
                 key={blank.id}
+                ref={(el) => inputRefs.current[blank.id] = el}
                 type="text"
                 value={answers[blank.id] || ""}
                 onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
                 onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(blank.id, e)}
                 className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
                   isCorrect ? "border-green-500 text-green-700" :
                   isIncorrect ? "border-red-500 text-red-700" :
                   `border-gray-300 focus:border-${getDifficultyColor()}`
                 }`}
-                style={{ width: `${Math.max(blank.length * 1.2, 4)}rem` }}
+                style={{ 
+                  width: `${Math.max(blank.length * 0.9 + 1, 2.5)}rem`,
+                  minWidth: '2.5rem',
+                  maxWidth: '12rem'
+                }}
               />
               {punctuation && <span className="text-lg">{punctuation}</span>}
             </span>
