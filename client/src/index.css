@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  --beginner: hsl(122, 42%, 49%);
+  --intermediate: hsl(36, 100%, 50%);
+  --advanced: hsl(4, 85%, 60%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Noto Sans KR', 'Inter', sans-serif;
+  }
+}
+
+.font-korean {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.font-ui {
+  font-family: 'Inter', sans-serif;
+}
+
+.bg-beginner {
+  background-color: var(--beginner);
+}
+
+.bg-intermediate {
+  background-color: var(--intermediate);
+}
+
+.bg-advanced {
+  background-color: var(--advanced);
+}
+
+.text-beginner {
+  color: var(--beginner);
+}
+
+.text-intermediate {
+  color: var(--intermediate);
+}
+
+.text-advanced {
+  color: var(--advanced);
+}
+
+.border-beginner {
+  border-color: var(--beginner);
+}
+
+.border-intermediate {
+  border-color: var(--intermediate);
+}
+
+.border-advanced {
+  border-color: var(--advanced);
+}
+
+.focus\:border-beginner:focus {
+  border-color: var(--beginner);
+}
+
+.focus\:border-intermediate:focus {
+  border-color: var(--intermediate);
+}
+
+.focus\:border-advanced:focus {
+  border-color: var(--advanced);
+}
