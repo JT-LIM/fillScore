@@ -24,10 +24,10 @@ import ResultsPanel from "@/components/results-panel";
 import { type Exercise, type GradingMode, type Category } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
-type ContentData = {
+type ContentData = Record<Category, {
   title: string;
   content: string;
-};
+}>;
 
 export default function Home() {
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
@@ -96,7 +96,15 @@ export default function Home() {
   const handleCategorySelect = (category: Category) => {
     if (!contentData) return;
     setSelectedCategory(category);
-    createExercise(contentData[category].content, category);
+    
+    // Check if the category exists in contentData
+    const categoryContent = contentData[category];
+    if (!categoryContent) {
+      console.error(`Category ${category} not found in contentData`);
+      return;
+    }
+    
+    createExercise(categoryContent.content, category);
   };
 
   const handleCustomTextSubmit = () => {
