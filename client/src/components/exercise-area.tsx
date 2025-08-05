@@ -134,13 +134,13 @@ export default function ExerciseArea({
       // Navigate to next blank when at the end and pressing right arrow
       if (e.key === 'ArrowRight' && cursorPosition === textLength) {
         e.preventDefault();
-        focusNextBlank(blankId);
+        focusNextBlank(blankId, 'from-left');
       }
       
       // Navigate to previous blank when at the beginning and pressing left arrow
       if (e.key === 'ArrowLeft' && cursorPosition === 0) {
         e.preventDefault();
-        focusPreviousBlank(blankId);
+        focusPreviousBlank(blankId, 'from-right');
       }
     }
     
@@ -172,7 +172,7 @@ export default function ExerciseArea({
     }
   };
 
-  const focusNextBlank = (currentBlankId: string) => {
+  const focusNextBlank = (currentBlankId: string, direction: 'forward' | 'from-left' = 'forward') => {
     // Sort blanks by their position in the text, not by ID
     const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
     const blankIds = sortedBlanks.map(b => b.id);
@@ -181,12 +181,28 @@ export default function ExerciseArea({
     const nextBlankId = blankIds[nextIndex];
     
     if (inputRefs.current[nextBlankId]) {
-      inputRefs.current[nextBlankId]?.focus();
-      inputRefs.current[nextBlankId]?.select(); // Select all text for easy editing
+      const input = inputRefs.current[nextBlankId];
+      input?.focus();
+      
+      // Set cursor position based on direction
+      setTimeout(() => {
+        if (input && input.value) {
+          if (direction === 'from-left') {
+            // Coming from left (previous blank), put cursor at start
+            input.setSelectionRange(0, 0);
+          } else {
+            // Default behavior - select all text for easy editing
+            input.select();
+          }
+        } else {
+          // Empty field - just focus
+          input?.select();
+        }
+      }, 0);
     }
   };
 
-  const focusPreviousBlank = (currentBlankId: string) => {
+  const focusPreviousBlank = (currentBlankId: string, direction: 'backward' | 'from-right' = 'backward') => {
     // Sort blanks by their position in the text, not by ID
     const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
     const blankIds = sortedBlanks.map(b => b.id);
@@ -195,8 +211,25 @@ export default function ExerciseArea({
     const previousBlankId = blankIds[previousIndex];
     
     if (inputRefs.current[previousBlankId]) {
-      inputRefs.current[previousBlankId]?.focus();
-      inputRefs.current[previousBlankId]?.select(); // Select all text for easy editing
+      const input = inputRefs.current[previousBlankId];
+      input?.focus();
+      
+      // Set cursor position based on direction
+      setTimeout(() => {
+        if (input && input.value) {
+          if (direction === 'from-right') {
+            // Coming from right (next blank), put cursor at end
+            const length = input.value.length;
+            input.setSelectionRange(length, length);
+          } else {
+            // Default behavior - select all text for easy editing
+            input.select();
+          }
+        } else {
+          // Empty field - just focus
+          input?.select();
+        }
+      }, 0);
     }
   };
 
