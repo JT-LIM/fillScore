@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ExerciseArea from "@/components/exercise-area";
 import ResultsPanel from "@/components/results-panel";
-import { type Exercise, type GradingMode, type Category } from "@shared/schema";
+import { type Exercise, type GradingMode, type Category, type Difficulty } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
 type ContentData = Record<Category, {
@@ -37,6 +38,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("advanced");
   const [customText, setCustomText] = useState("");
   const [isCreatingExercise, setIsCreatingExercise] = useState(false);
 
@@ -84,12 +86,13 @@ export default function Home() {
     }
   };
 
-  const createExercise = async (text: string, category: Category) => {
+  const createExercise = async (text: string, category: Category, difficulty: Difficulty) => {
     setIsCreatingExercise(true);
     try {
       const response = await apiRequest("POST", "/api/exercises", {
         originalText: text,
         category: category,
+        difficulty: difficulty,
       });
 
       const exercise = (await response.json()) as Exercise;
@@ -112,12 +115,12 @@ export default function Home() {
       return;
     }
     
-    createExercise(categoryContent.content, category);
+    createExercise(categoryContent.content, category, selectedDifficulty);
   };
 
   const handleCustomTextSubmit = () => {
     if (!customText.trim() || !selectedCategory) return;
-    createExercise(customText, selectedCategory);
+    createExercise(customText, selectedCategory, selectedDifficulty);
   };
 
   const categories = [
@@ -195,6 +198,36 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {!currentExercise && (
           <div className="space-y-8">
+            {/* Difficulty Selection */}
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                난이도 선택
+              </h2>
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <Label htmlFor="difficulty-select" className="text-lg font-medium">
+                    빈칸 개수 선택
+                  </Label>
+                  <Select 
+                    value={selectedDifficulty} 
+                    onValueChange={(value: Difficulty) => setSelectedDifficulty(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="난이도를 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">초급 (약 20%의 단어)</SelectItem>
+                      <SelectItem value="intermediate">중급 (약 50%의 단어)</SelectItem>
+                      <SelectItem value="advanced">고급 (약 95%의 단어)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-600">
+                    선택한 난이도에 따라 텍스트에서 빈칸으로 만들어지는 단어의 비율이 달라집니다.
+                  </p>
+                </div>
+              </Card>
+            </section>
+
             {/* Category Selection */}
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">

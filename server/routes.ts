@@ -56,14 +56,19 @@ function analyzeKoreanText(text: string, difficulty: Difficulty): BlankItem[] {
       if (!isStandaloneParticle && !isShortWord && !hasSpecialCharsInMiddle && cleanWord.length > 0) {
         let shouldMakeBlank = false;
         
-        if (difficulty === 'advanced') {
-          // For advanced, make almost all non-particle words into blanks (95%)
-          // Add randomness to ensure different blanks each time
-          const randomSeed = Math.random() + Date.now() * 0.000001; // Use time for different results
-          shouldMakeBlank = (randomSeed % 1) < 0.95;
+        // Add randomness to ensure different blanks each time
+        const randomSeed = Math.random() + Date.now() * 0.000001; // Use time for different results
+        const randomChance = randomSeed % 1;
+        
+        if (difficulty === 'beginner') {
+          shouldMakeBlank = randomChance < 0.2; // 20% of words
+        } else if (difficulty === 'intermediate') {
+          shouldMakeBlank = randomChance < 0.5; // 50% of words
+        } else if (difficulty === 'advanced') {
+          shouldMakeBlank = randomChance < 0.95; // 95% of words
         }
         
-        if (shouldMakeBlank) {
+        if (shouldMakeBlank && blankCount < targetBlankCount) {
           blanks.push({
             id: `blank_${globalWordIndex}`,
             position,
@@ -127,12 +132,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create exercise with blanks
   app.post("/api/exercises", async (req, res) => {
     try {
-      const { originalText, category } = insertExerciseSchema.parse(req.body);
+      const { originalText, category, difficulty } = insertExerciseSchema.parse(req.body);
       
-      let exercise = await storage.createExercise({ originalText, category });
+      let exercise = await storage.createExercise({ originalText, category, difficulty });
       
-      // Generate blanks based on advanced difficulty (always advanced now)
-      const blanks = analyzeKoreanText(originalText, 'advanced');
+      // Generate blanks based on selected difficulty
+      const blanks = analyzeKoreanText(originalText, difficulty);
       
       // Update the exercise with the generated blanks in storage
       exercise = await storage.updateExerciseBlanks(exercise.id, blanks) || exercise;

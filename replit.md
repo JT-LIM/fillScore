@@ -38,7 +38,8 @@ Preferred communication style: Simple, everyday language.
 ### Korean Language Processing
 - **Morphological Analysis**: Custom analyzer that identifies Korean particles (조사) and functional words
 - **Smart Blank Creation**: Avoids creating blanks for grammatical particles while targeting content words
-- **Difficulty Scaling**: Adaptive blank percentage based on learner level
+- **Difficulty Scaling**: Three-tier difficulty system (초급 20%, 중급 50%, 고급 95%) for adaptive blank generation
+- **User-selectable Difficulty**: Frontend interface allows users to choose difficulty level before exercise creation
 - **Real-time Feedback**: Instant grading with detailed feedback for incorrect answers
 
 ### External Dependencies
