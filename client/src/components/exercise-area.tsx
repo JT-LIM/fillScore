@@ -28,6 +28,7 @@ export default function ExerciseArea({
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [instantResults, setInstantResults] = useState<{ [key: string]: ExerciseResult }>({});
   const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const composingRef = useRef<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
   const getDifficultyColor = () => {
@@ -92,16 +93,32 @@ export default function ExerciseArea({
     }
   };
 
+  const handleCompositionStart = (blankId: string) => {
+    composingRef.current[blankId] = true;
+  };
+
+  const handleCompositionEnd = (blankId: string, e: React.CompositionEvent) => {
+    composingRef.current[blankId] = false;
+    // Update the answer with the final composed value
+    const target = e.target as HTMLInputElement;
+    handleAnswerChange(blankId, target.value);
+  };
+
   const handleKeyDown = (blankId: string, e: React.KeyboardEvent) => {
     const target = e.target as HTMLInputElement;
-    const isComposing = e.nativeEvent && (e.nativeEvent as any).isComposing;
+    const isComposing = composingRef.current[blankId] || (e.nativeEvent && (e.nativeEvent as any).isComposing);
+    
+    // Don't process navigation keys during composition
+    if (isComposing) {
+      return;
+    }
     
     // Space key navigation (when there's content and not composing)
     if (e.code === 'Space' && target instanceof HTMLInputElement) {
       const currentValue = target.value;
       
-      // Only navigate if there's content AND we're not in the middle of Korean composition
-      if (currentValue.trim() && !isComposing) {
+      // Only navigate if there's content
+      if (currentValue.trim()) {
         e.preventDefault();
         // Set the final value before navigation to prevent character moving
         handleAnswerChange(blankId, currentValue);
@@ -110,7 +127,7 @@ export default function ExerciseArea({
     }
     
     // Arrow key navigation
-    if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !isComposing) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       const cursorPosition = target.selectionStart || 0;
       const textLength = target.value.length;
       
@@ -130,17 +147,28 @@ export default function ExerciseArea({
     // Tab key navigation
     if (e.key === 'Tab') {
       e.preventDefault();
-      if (e.shiftKey) {
-        focusPreviousBlank(blankId);
-      } else {
-        focusNextBlank(blankId);
-      }
+      // Save current value before navigation
+      const currentValue = target.value;
+      handleAnswerChange(blankId, currentValue);
+      
+      // Use setTimeout to ensure the value is saved before navigation
+      setTimeout(() => {
+        if (e.shiftKey) {
+          focusPreviousBlank(blankId);
+        } else {
+          focusNextBlank(blankId);
+        }
+      }, 10); // Slightly longer timeout for Korean IME
     }
     
     // Enter key navigation (move to next blank)
-    if (e.key === 'Enter' && !isComposing) {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      focusNextBlank(blankId);
+      // Save current value before navigation
+      const currentValue = target.value;
+      handleAnswerChange(blankId, currentValue);
+      
+      setTimeout(() => focusNextBlank(blankId), 10);
     }
   };
 
@@ -224,6 +252,8 @@ export default function ExerciseArea({
                 onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
                 onBlur={(e) => handleAnswerBlur(blank.id, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(blank.id, e)}
+                onCompositionStart={() => handleCompositionStart(blank.id)}
+                onCompositionEnd={(e) => handleCompositionEnd(blank.id, e)}
                 className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
                   isCorrect ? "border-green-500 text-green-700" :
                   isIncorrect ? "border-red-500 text-red-700" :
