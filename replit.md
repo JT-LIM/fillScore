@@ -41,6 +41,7 @@ Preferred communication style: Simple, everyday language.
 - **Difficulty Scaling**: Three-tier difficulty system (초급 20%, 중급 50%, 고급 95%) for adaptive blank generation
 - **User-selectable Difficulty**: Frontend interface allows users to choose difficulty level before exercise creation
 - **Real-time Feedback**: Instant grading with detailed feedback for incorrect answers
+- **Keyboard Navigation**: Arrow keys, Tab, Enter, and Space key navigation between blanks for improved user experience
 
 ### External Dependencies
 - **Neon Database**: Serverless PostgreSQL hosting (@neondatabase/serverless)

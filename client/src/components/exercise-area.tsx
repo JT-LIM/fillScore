@@ -93,10 +93,12 @@ export default function ExerciseArea({
   };
 
   const handleKeyDown = (blankId: string, e: React.KeyboardEvent) => {
-    if (e.code === 'Space' && e.target instanceof HTMLInputElement) {
-      const currentValue = e.target.value;
-      // For Korean input, check if composition is active
-      const isComposing = e.nativeEvent && (e.nativeEvent as any).isComposing;
+    const target = e.target as HTMLInputElement;
+    const isComposing = e.nativeEvent && (e.nativeEvent as any).isComposing;
+    
+    // Space key navigation (when there's content and not composing)
+    if (e.code === 'Space' && target instanceof HTMLInputElement) {
+      const currentValue = target.value;
       
       // Only navigate if there's content AND we're not in the middle of Korean composition
       if (currentValue.trim() && !isComposing) {
@@ -105,6 +107,40 @@ export default function ExerciseArea({
         handleAnswerChange(blankId, currentValue);
         setTimeout(() => focusNextBlank(blankId), 0);
       }
+    }
+    
+    // Arrow key navigation
+    if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !isComposing) {
+      const cursorPosition = target.selectionStart || 0;
+      const textLength = target.value.length;
+      
+      // Navigate to next blank when at the end and pressing right arrow
+      if (e.key === 'ArrowRight' && cursorPosition === textLength) {
+        e.preventDefault();
+        focusNextBlank(blankId);
+      }
+      
+      // Navigate to previous blank when at the beginning and pressing left arrow
+      if (e.key === 'ArrowLeft' && cursorPosition === 0) {
+        e.preventDefault();
+        focusPreviousBlank(blankId);
+      }
+    }
+    
+    // Tab key navigation
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        focusPreviousBlank(blankId);
+      } else {
+        focusNextBlank(blankId);
+      }
+    }
+    
+    // Enter key navigation (move to next blank)
+    if (e.key === 'Enter' && !isComposing) {
+      e.preventDefault();
+      focusNextBlank(blankId);
     }
   };
 
@@ -118,6 +154,21 @@ export default function ExerciseArea({
     
     if (inputRefs.current[nextBlankId]) {
       inputRefs.current[nextBlankId]?.focus();
+      inputRefs.current[nextBlankId]?.select(); // Select all text for easy editing
+    }
+  };
+
+  const focusPreviousBlank = (currentBlankId: string) => {
+    // Sort blanks by their position in the text, not by ID
+    const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
+    const blankIds = sortedBlanks.map(b => b.id);
+    const currentIndex = blankIds.indexOf(currentBlankId);
+    const previousIndex = currentIndex === 0 ? blankIds.length - 1 : currentIndex - 1;
+    const previousBlankId = blankIds[previousIndex];
+    
+    if (inputRefs.current[previousBlankId]) {
+      inputRefs.current[previousBlankId]?.focus();
+      inputRefs.current[previousBlankId]?.select(); // Select all text for easy editing
     }
   };
 
@@ -268,6 +319,22 @@ export default function ExerciseArea({
             <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className={`h-2 bg-${getDifficultyColor()}`} />
+        </div>
+
+        {/* Navigation Hints */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start space-x-2">
+            <Lightbulb className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-blue-700">
+              <span className="font-medium">키보드 단축키:</span>
+              <div className="mt-1 space-y-1">
+                <div>• <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">←</kbd> <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">→</kbd> 방향키로 빈칸 이동</div>
+                <div>• <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">Tab</kbd> 다음 빈칸, <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">Shift+Tab</kbd> 이전 빈칸</div>
+                <div>• <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">Enter</kbd> 다음 빈칸으로 이동</div>
+                <div>• <kbd className="px-1 py-0.5 bg-blue-100 rounded text-xs">Space</kbd> 답 입력 후 다음 빈칸으로</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Exercise Content */}
