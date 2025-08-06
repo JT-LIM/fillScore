@@ -6,7 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type Exercise, type GradingMode, type ExerciseResult } from "@shared/schema";
+import {
+  type Exercise,
+  type GradingMode,
+  type ExerciseResult,
+} from "@shared/schema";
 
 interface ExerciseAreaProps {
   exercise: Exercise;
@@ -17,58 +21,84 @@ interface ExerciseAreaProps {
   onBackToMain: () => void;
 }
 
-export default function ExerciseArea({ 
-  exercise, 
-  gradingMode, 
-  onGradingModeChange, 
+export default function ExerciseArea({
+  exercise,
+  gradingMode,
+  onGradingModeChange,
   onResultsReady,
   onRetry,
-  onBackToMain
+  onBackToMain,
 }: ExerciseAreaProps) {
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-  const [instantResults, setInstantResults] = useState<{ [key: string]: ExerciseResult }>({});
+  const [instantResults, setInstantResults] = useState<{
+    [key: string]: ExerciseResult;
+  }>({});
   const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const composingRef = useRef<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
   const getDifficultyColor = () => {
     switch (exercise.difficulty) {
-      case "beginner": return "beginner";
-      case "intermediate": return "intermediate";
-      case "advanced": return "advanced";
-      default: return "primary";
+      case "beginner":
+        return "beginner";
+      case "intermediate":
+        return "intermediate";
+      case "advanced":
+        return "advanced";
+      default:
+        return "primary";
     }
   };
 
   const getDifficultyLabel = () => {
     switch (exercise.difficulty) {
-      case "beginner": return "초급";
-      case "intermediate": return "중급";
-      case "advanced": return "고급";
-      default: return "";
+      case "beginner":
+        return "초급";
+      case "intermediate":
+        return "중급";
+      case "advanced":
+        return "고급";
+      default:
+        return "";
     }
   };
 
   // Calculate progress
-  const answeredCount = Object.keys(answers).filter(key => answers[key]?.trim()).length;
+  const answeredCount = Object.keys(answers).filter((key) =>
+    answers[key]?.trim(),
+  ).length;
   const totalBlanks = exercise.blanks.length;
   const progress = totalBlanks > 0 ? (answeredCount / totalBlanks) * 100 : 0;
 
   // Instant grading mutation
   const instantGradeMutation = useMutation({
-    mutationFn: async ({ blankId, answer }: { blankId: string; answer: string }) => {
-      const response = await apiRequest("POST", `/api/exercises/${exercise.id}/answer`, { blankId, answer });
+    mutationFn: async ({
+      blankId,
+      answer,
+    }: {
+      blankId: string;
+      answer: string;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/exercises/${exercise.id}/answer`,
+        { blankId, answer },
+      );
       return response.json();
     },
     onSuccess: (result: ExerciseResult) => {
-      setInstantResults(prev => ({ ...prev, [result.blankId]: result }));
+      setInstantResults((prev) => ({ ...prev, [result.blankId]: result }));
     },
   });
 
   // Batch grading mutation
   const batchGradeMutation = useMutation({
     mutationFn: async (allAnswers: { [key: string]: string }) => {
-      const response = await apiRequest("POST", `/api/exercises/${exercise.id}/grade`, { answers: allAnswers });
+      const response = await apiRequest(
+        "POST",
+        `/api/exercises/${exercise.id}/grade`,
+        { answers: allAnswers },
+      );
       return response.json();
     },
     onSuccess: (results) => {
@@ -84,7 +114,7 @@ export default function ExerciseArea({
   });
 
   const handleAnswerChange = (blankId: string, value: string) => {
-    setAnswers(prev => ({ ...prev, [blankId]: value }));
+    setAnswers((prev) => ({ ...prev, [blankId]: value }));
   };
 
   const handleAnswerBlur = (blankId: string, value: string) => {
@@ -106,17 +136,19 @@ export default function ExerciseArea({
 
   const handleKeyDown = (blankId: string, e: React.KeyboardEvent) => {
     const target = e.target as HTMLInputElement;
-    const isComposing = composingRef.current[blankId] || (e.nativeEvent && (e.nativeEvent as any).isComposing);
-    
+    const isComposing =
+      composingRef.current[blankId] ||
+      (e.nativeEvent && (e.nativeEvent as any).isComposing);
+
     // Don't process navigation keys during composition
     if (isComposing) {
       return;
     }
-    
+
     // Space key navigation (when there's content and not composing)
-    if (e.code === 'Space' && target instanceof HTMLInputElement) {
+    if (e.code === "Space" && target instanceof HTMLInputElement) {
       const currentValue = target.value;
-      
+
       // Only navigate if there's content
       if (currentValue.trim()) {
         e.preventDefault();
@@ -125,32 +157,32 @@ export default function ExerciseArea({
         setTimeout(() => focusNextBlank(blankId), 0);
       }
     }
-    
+
     // Arrow key navigation
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       const cursorPosition = target.selectionStart || 0;
       const textLength = target.value.length;
-      
+
       // Navigate to next blank when at the end and pressing right arrow
-      if (e.key === 'ArrowRight' && cursorPosition === textLength) {
+      if (e.key === "ArrowRight" && cursorPosition === textLength) {
         e.preventDefault();
-        focusNextBlank(blankId, 'from-left');
+        focusNextBlank(blankId, "from-left");
       }
-      
+
       // Navigate to previous blank when at the beginning and pressing left arrow
-      if (e.key === 'ArrowLeft' && cursorPosition === 0) {
+      if (e.key === "ArrowLeft" && cursorPosition === 0) {
         e.preventDefault();
-        focusPreviousBlank(blankId, 'from-right');
+        focusPreviousBlank(blankId, "from-right");
       }
     }
-    
+
     // Tab key navigation
-    if (e.key === 'Tab') {
+    if (e.key === "Tab") {
       e.preventDefault();
       // Save current value before navigation
       const currentValue = target.value;
       handleAnswerChange(blankId, currentValue);
-      
+
       // Use setTimeout to ensure the value is saved before navigation
       setTimeout(() => {
         if (e.shiftKey) {
@@ -160,34 +192,39 @@ export default function ExerciseArea({
         }
       }, 10); // Slightly longer timeout for Korean IME
     }
-    
+
     // Enter key navigation (move to next blank)
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       // Save current value before navigation
       const currentValue = target.value;
       handleAnswerChange(blankId, currentValue);
-      
+
       setTimeout(() => focusNextBlank(blankId), 10);
     }
   };
 
-  const focusNextBlank = (currentBlankId: string, direction: 'forward' | 'from-left' = 'forward') => {
+  const focusNextBlank = (
+    currentBlankId: string,
+    direction: "forward" | "from-left" = "forward",
+  ) => {
     // Sort blanks by their position in the text, not by ID
-    const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
-    const blankIds = sortedBlanks.map(b => b.id);
+    const sortedBlanks = exercise.blanks.sort(
+      (a, b) => a.position - b.position,
+    );
+    const blankIds = sortedBlanks.map((b) => b.id);
     const currentIndex = blankIds.indexOf(currentBlankId);
     const nextIndex = (currentIndex + 1) % blankIds.length;
     const nextBlankId = blankIds[nextIndex];
-    
+
     if (inputRefs.current[nextBlankId]) {
       const input = inputRefs.current[nextBlankId];
       input?.focus();
-      
+
       // Set cursor position based on direction
       setTimeout(() => {
         if (input && input.value) {
-          if (direction === 'from-left') {
+          if (direction === "from-left") {
             // Coming from left (previous blank), put cursor at start
             input.setSelectionRange(0, 0);
           } else {
@@ -202,22 +239,28 @@ export default function ExerciseArea({
     }
   };
 
-  const focusPreviousBlank = (currentBlankId: string, direction: 'backward' | 'from-right' = 'backward') => {
+  const focusPreviousBlank = (
+    currentBlankId: string,
+    direction: "backward" | "from-right" = "backward",
+  ) => {
     // Sort blanks by their position in the text, not by ID
-    const sortedBlanks = exercise.blanks.sort((a, b) => a.position - b.position);
-    const blankIds = sortedBlanks.map(b => b.id);
+    const sortedBlanks = exercise.blanks.sort(
+      (a, b) => a.position - b.position,
+    );
+    const blankIds = sortedBlanks.map((b) => b.id);
     const currentIndex = blankIds.indexOf(currentBlankId);
-    const previousIndex = currentIndex === 0 ? blankIds.length - 1 : currentIndex - 1;
+    const previousIndex =
+      currentIndex === 0 ? blankIds.length - 1 : currentIndex - 1;
     const previousBlankId = blankIds[previousIndex];
-    
+
     if (inputRefs.current[previousBlankId]) {
       const input = inputRefs.current[previousBlankId];
       input?.focus();
-      
+
       // Set cursor position based on direction
       setTimeout(() => {
         if (input && input.value) {
-          if (direction === 'from-right') {
+          if (direction === "from-right") {
             // Coming from right (next blank), put cursor at end
             const length = input.value.length;
             input.setSelectionRange(length, length);
@@ -247,24 +290,26 @@ export default function ExerciseArea({
   // Generate text with blanks
   const generateTextWithBlanks = () => {
     // Split text by lines first to preserve line breaks
-    const lines = exercise.originalText.split('\n');
+    const lines = exercise.originalText.split("\n");
     const elements: JSX.Element[] = [];
     let currentPosition = 0;
     let globalWordIndex = 0;
 
     lines.forEach((line, lineIndex) => {
-      if (line.trim() === '') {
+      if (line.trim() === "") {
         // Empty line - add a line break
         elements.push(<br key={`br-${lineIndex}`} />);
         currentPosition += 1; // Account for the newline character
         return;
       }
 
-      const words = line.split(/\s+/).filter(word => word.length > 0);
-      
+      const words = line.split(/\s+/).filter((word) => word.length > 0);
+
       words.forEach((word, wordIndex) => {
-        const blank = exercise.blanks.find(b => b.position === currentPosition);
-        
+        const blank = exercise.blanks.find(
+          (b) => b.position === currentPosition,
+        );
+
         if (blank) {
           const result = instantResults[blank.id];
           const hasResult = gradingMode === "instant" && result;
@@ -272,14 +317,14 @@ export default function ExerciseArea({
           const isIncorrect = hasResult && !result.isCorrect;
 
           // Split word into clean part and punctuation
-          const cleanWord = word.replace(/[.,!?;:'"()[\]{}\-–—\/\\]+$/g, '');
+          const cleanWord = word.replace(/[.,!?;:'"()[\]{}\-–—\/\\]+$/g, "");
           const punctuation = word.slice(cleanWord.length);
 
           elements.push(
             <span key={`blank-wrapper-${globalWordIndex}`}>
               <input
                 key={blank.id}
-                ref={(el) => inputRefs.current[blank.id] = el}
+                ref={(el) => (inputRefs.current[blank.id] = el)}
                 type="text"
                 value={answers[blank.id] || ""}
                 onChange={(e) => handleAnswerChange(blank.id, e.target.value)}
@@ -288,32 +333,34 @@ export default function ExerciseArea({
                 onCompositionStart={() => handleCompositionStart(blank.id)}
                 onCompositionEnd={(e) => handleCompositionEnd(blank.id, e)}
                 className={`inline-block px-2 py-1 text-center border-b-2 bg-transparent focus:outline-none transition-colors ${
-                  isCorrect ? "border-green-500 text-green-700" :
-                  isIncorrect ? "border-red-500 text-red-700" :
-                  `border-gray-300 focus:border-${getDifficultyColor()}`
+                  isCorrect
+                    ? "border-green-500 text-green-700"
+                    : isIncorrect
+                      ? "border-red-500 text-red-700"
+                      : `border-gray-300 focus:border-${getDifficultyColor()}`
                 }`}
-                style={{ 
+                style={{
                   width: `${Math.max(blank.length * 1.2 + 2, 3)}rem`,
-                  minWidth: '3rem',
-                  maxWidth: '15rem'
+                  minWidth: "3rem",
+                  maxWidth: "15rem",
                 }}
               />
               {punctuation && <span className="text-lg">{punctuation}</span>}
-            </span>
+            </span>,
           );
         } else {
           elements.push(
             <span key={`word-${globalWordIndex}`} className="text-lg">
               {word}
-            </span>
+            </span>,
           );
         }
-        
+
         // Add space after word (except for last word in line)
         if (wordIndex < words.length - 1) {
           elements.push(<span key={`space-${globalWordIndex}`}> </span>);
         }
-        
+
         currentPosition += word.length + 1; // +1 for space
         globalWordIndex++;
       });
@@ -328,7 +375,9 @@ export default function ExerciseArea({
   };
 
   // Show instant feedback
-  const instantFeedback = Object.values(instantResults).filter(result => result.feedback);
+  const instantFeedback = Object.values(instantResults).filter(
+    (result) => result.feedback,
+  );
 
   return (
     <Card className="mb-8">
@@ -337,11 +386,15 @@ export default function ExerciseArea({
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">빈칸 채우기</h2>
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 bg-${getDifficultyColor()} rounded-full`}></div>
-              <span className="text-sm text-gray-600">{getDifficultyLabel()}</span>
+              <div
+                className={`w-3 h-3 bg-${getDifficultyColor()} rounded-full`}
+              ></div>
+              <span className="text-sm text-gray-600">
+                {getDifficultyLabel()}
+              </span>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {/* Grading Mode Toggle */}
             <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
@@ -362,7 +415,7 @@ export default function ExerciseArea({
                 한번에 채점
               </Button>
             </div>
-            
+
             {/* Back to Main Button */}
             <Button
               variant="outline"
@@ -379,13 +432,18 @@ export default function ExerciseArea({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">진행률</span>
-            <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
+            <span className="text-sm font-medium text-gray-900">
+              {Math.round(progress)}%
+            </span>
           </div>
-          <Progress value={progress} className={`h-2 bg-${getDifficultyColor()}`} />
+          <Progress
+            value={progress}
+            className={`h-2 bg-${getDifficultyColor()}`}
+          />
         </div>
 
         {/* Navigation Hints */}
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        {/* <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-start space-x-2">
             <Lightbulb className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-xs text-blue-700">
@@ -398,20 +456,27 @@ export default function ExerciseArea({
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Exercise Content */}
         <div className="p-4 bg-gray-50 rounded-lg mb-6">
           <div className="text-lg leading-relaxed space-x-1">
             {generateTextWithBlanks()}
           </div>
-          
+
           {/* Instant Feedback */}
           {gradingMode === "instant" && instantFeedback.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {instantFeedback.map((result) => (
-                <div key={result.blankId} className="flex items-center space-x-1 text-sm">
-                  <span className={result.isCorrect ? "text-green-700" : "text-red-700"}>
+                <div
+                  key={result.blankId}
+                  className="flex items-center space-x-1 text-sm"
+                >
+                  <span
+                    className={
+                      result.isCorrect ? "text-green-700" : "text-red-700"
+                    }
+                  >
                     {result.userAnswer} → {result.feedback}
                   </span>
                 </div>
@@ -430,12 +495,9 @@ export default function ExerciseArea({
             <RotateCcw className="w-4 h-4" />
             <span>다시 풀기</span>
           </Button>
-          
+
           <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              className="flex items-center space-x-2"
-            >
+            <Button variant="outline" className="flex items-center space-x-2">
               <Lightbulb className="w-4 h-4" />
               <span>힌트 보기</span>
             </Button>
@@ -446,7 +508,9 @@ export default function ExerciseArea({
                 className="flex items-center space-x-2"
               >
                 <CheckCircle className="w-4 h-4" />
-                <span>{batchGradeMutation.isPending ? "채점 중..." : "전체 채점"}</span>
+                <span>
+                  {batchGradeMutation.isPending ? "채점 중..." : "전체 채점"}
+                </span>
               </Button>
             )}
           </div>
