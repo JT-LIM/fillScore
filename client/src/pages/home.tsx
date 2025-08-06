@@ -125,27 +125,6 @@ export default function Home() {
 
   const categories = [
     {
-      id: "middle_school_info" as Category,
-      title: "중학교정보",
-      description: "성취기준",
-      icon: BookOpen,
-      color: "bg-blue-500",
-    },
-    {
-      id: "high_school_info" as Category,
-      title: "고등학교정보",
-      description: "성취기준",
-      icon: Users,
-      color: "bg-green-500",
-    },
-    {
-      id: "ai_basics" as Category,
-      title: "인공지능기초",
-      description: "성취기준",
-      icon: Brain,
-      color: "bg-purple-500",
-    },
-    {
       id: "middle_school_curriculum" as Category,
       title: "중학교정보",
       description: "내용체계",
@@ -165,6 +144,27 @@ export default function Home() {
       description: "내용체계",
       icon: Brain,
       color: "bg-purple-400",
+    },
+    {
+      id: "middle_school_info" as Category,
+      title: "중학교정보",
+      description: "성취기준",
+      icon: BookOpen,
+      color: "bg-blue-500",
+    },
+    {
+      id: "high_school_info" as Category,
+      title: "고등학교정보",
+      description: "성취기준",
+      icon: Users,
+      color: "bg-green-500",
+    },
+    {
+      id: "ai_basics" as Category,
+      title: "인공지능기초",
+      description: "성취기준",
+      icon: Brain,
+      color: "bg-purple-500",
     },
   ];
 
