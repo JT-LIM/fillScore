@@ -41,7 +41,7 @@ export type GradingMode = 'instant' | 'batch';
 
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
-export type Category = 'middle_school_info' | 'high_school_info' | 'ai_basics' | 'middle_school_curriculum' | 'high_school_curriculum' | 'ai_basics_curriculum';
+export type Category = 'middle_school_info' | 'high_school_info' | 'ai_basics' | 'middle_school_curriculum' | 'high_school_curriculum' | 'ai_basics_curriculum' | 'data_science_curriculum' | 'software_life_curriculum' | 'data_science_info' | 'software_life_info';
 
 export type InsertExercise = z.infer<typeof insertExerciseSchema>;
 export type Exercise = typeof exercises.$inferSelect;

@@ -146,6 +146,20 @@ export default function Home() {
       color: "bg-purple-400",
     },
     {
+      id: "data_science_curriculum" as Category,
+      title: "데이터과학",
+      description: "내용체계",
+      icon: FileText,
+      color: "bg-orange-400",
+    },
+    {
+      id: "software_life_curriculum" as Category,
+      title: "소프트웨어와생활",
+      description: "내용체계",
+      icon: Settings,
+      color: "bg-teal-400",
+    },
+    {
       id: "middle_school_info" as Category,
       title: "중학교정보",
       description: "성취기준",
@@ -165,6 +179,20 @@ export default function Home() {
       description: "성취기준",
       icon: Brain,
       color: "bg-purple-500",
+    },
+    {
+      id: "data_science_info" as Category,
+      title: "데이터과학",
+      description: "성취기준",
+      icon: FileText,
+      color: "bg-orange-500",
+    },
+    {
+      id: "software_life_info" as Category,
+      title: "소프트웨어와생활",
+      description: "성취기준",
+      icon: Settings,
+      color: "bg-teal-500",
     },
   ];
 
@@ -233,7 +261,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 학습 카테고리 선택
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {categories.map((category) => {
                   const Icon = category.icon;
                   return (
